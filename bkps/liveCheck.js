@@ -9,14 +9,14 @@ var { BinanceClient } = ccxws
 const binance = new BinanceClient()
 
 const log = require('./log')
-const { ohlcvs_gen, percDiff, twirlTimer, feeCalc,  getTime, getProfit, setCoinsOnTrade, removeCoinsOnTrade } = require('./fun_')
+const { ohlcvs_gen, percDiff, twirlTimer, getTime, getProfit, setCoinsOnTrade, removeCoinsOnTrade } = require('./fun_')
 const config = require('./config')
 const coinsOnTrade = require('./coinsOnTrade.json')
 
-const coinsForTrade = require('./markets.json')
+const coinsForTrade_ = require('./markets.json')
 
 
-var coinsForTrade_ =  [
+var coinsForTrade =  [
   'BCC',     'NANO',  'DOGE',
   'MCO',     'BEAR',  'XRPBULL',
   'EOSBEAR', 'EOSUP', 'LTCDOWN',
@@ -138,26 +138,25 @@ async function buy_and_watch(coinIndex, chances_) {
       date = getTime(ticker['timestamp'])
       inrDiff = getProfit(parseFloat(buy_price), parseFloat(ticker['last']))*config.inr
       log(price_pcnt_diff<0? '~rd': price_pcnt_diff>1?'~grn':'',ticker['base'] , date[1], "$buy", buy_price, "$live:", ticker['last'], '~mgnta', price_pcnt_diff.toFixed(1)+'%', '~yl', 'Rs',inrDiff.toFixed(0))
-    
-      // on profit
+    // on profit
     if(price_pcnt_diff>config.priceDiffOnSell){
-      log("~b_grn", parseFloat(ticker['last']) - parseFloat(buy_price), "COMPLETED WON :)")
+      log("~b_grn", parseFloat(ticker['last']) - parseFloat(buy_price), "COMPLETED :)")
       binance.unsubscribeTicker(market)
       removeCoinsOnTrade(ticker['base'])
       log('restart bot')
       isEntered = false
-      // setTimeout(run, 5000)
+      setTimeout(run, 5000)
     }
 
     // on loss
-    // if(config.bearingLoss > price_pcnt_diff){
-    //   log("~b_rd", parseFloat(ticker['last']) - parseFloat(buy_price), "COMPLETED LOST :)")
-    //   binance.unsubscribeTicker(market)
-    //   removeCoinsOnTrade(ticker['base'])
-    //   log('restart bot')
-    //   isEntered = false
-    //   setTimeout(run, 5000)
-    // }
+    if(Math.abs(price_pcnt_diff)>config.bearingLoss){
+      log("~b_rd", parseFloat(ticker['last']) - parseFloat(buy_price), "COMPLETED :)")
+      binance.unsubscribeTicker(market)
+      removeCoinsOnTrade(ticker['base'])
+      log('restart bot')
+      isEntered = false
+      setTimeout(run, 5000)
+    }
 
     })
 

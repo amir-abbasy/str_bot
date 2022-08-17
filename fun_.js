@@ -3,6 +3,8 @@ const fs = require('fs')
 
 const ex = new ccxt.binance()
 
+const coinsOnTrade = require('./coinsOnTrade.json')
+
 async function ohlcvs_gen(symbol = 'TRX', since = undefined, back = 288 , period='5m') {
    
   const pair = 'USDT'
@@ -61,10 +63,10 @@ async function loadMarkets() {
 }
 
 function percDiff(num1, num2) {
-  var diff = num2 - num1
+  var diff = num1 - num2
   var avrg = (num1 + num2) / 2
   // (Difference/Average) × 100%
-  return Math.abs((diff / avrg) * 100)
+  return (diff / avrg) * 100
 }
 
 function getBySelSupport(open, close, high, low) {
@@ -97,7 +99,7 @@ function Line(length) {
 // }
 
 function getProfit(buy_price = 5.659, sell_price = 5.719, invest = 12) {
-  var takerMakerFee = 0.024
+  var takerMakerFee = feeCalc(sell_price, invest)
   var amount = invest/buy_price
   return (amount*sell_price - amount*buy_price)-takerMakerFee
 }
@@ -128,6 +130,33 @@ function twirlTimer(){
 }
 
 
+function setCoinsOnTrade(coin){
+  newCoinsOnTrade = coinsOnTrade
+  newCoinsOnTrade.push(coin)
+  fs.writeFile('coinsOnTrade.json', JSON.stringify(newCoinsOnTrade), 'utf8', (err) => {
+    if (err) throw err
+    // console.log('coinsOnTrade write to json file')
+  })
+}
+
+function removeCoinsOnTrade(coin) {
+  console.log("remove coin", coin)
+}
+
+
+function feeCalc(price, invest) {
+  total_coins = invest/price
+  totalFee = percentage(total_coins, 0.10)
+ return totalFee
+}
+// console.log(feeCalc(1, 100))
+
+function percentage(num, per)
+{
+ return (num/100)*per;
+}
+
+
 module.exports = {
   ohlcvs_gen,
   ohlcvs_gen_test,
@@ -139,5 +168,8 @@ module.exports = {
   getProfit,
   getTime,
   timeDiff,
-  twirlTimer
+  twirlTimer,
+  setCoinsOnTrade,
+  removeCoinsOnTrade,
+  feeCalc
 }

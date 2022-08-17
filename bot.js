@@ -70,7 +70,7 @@ const bot = () => {
 
     if (key > 1) {
     var isBull = close > kp[4]
-    var pricePercDiff = percDiff(close, kp[4]).toFixed(1)
+    var pricePercDiff = Math.abs(percDiff(close, kp[4])).toFixed(1)
     var buyersSupport = getBySelSupport(k[1], k[2], k[3], close)
 
     left = isBull

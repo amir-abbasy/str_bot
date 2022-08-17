@@ -2,6 +2,7 @@ const { getBySelSupport } = require('./fun_')
 const log = require('./log')
 const ccxt = require('ccxt')
 const fs = require('fs')
+var exec = require('child_process').exec;
 
 // const ex = new ccxt.binance({
 //   api_key : 'Zm736zqFfeUpi2n2wRCIt0TIzIpl9rUm3gYZDndj382iSz4V9tbh5LBU1udtDdMo',
@@ -168,6 +169,88 @@ async function test(){
 function live() {
   
 }
-
-
 live()
+
+
+
+function curl_run(args_) {
+  exec(args_, function (error, stdout, stderr) {
+      console.log('stdout: ' + stdout);
+      // console.log('stderr: ' + stderr);
+      if (error !== null) {
+          console.log('exec error: ' + error);
+      }
+  })
+  
+
+}
+// curl_run("gnome-terminal")
+
+
+// For example:
+// You place an order to buy 10 ETH for 3,452.55 USDT each:
+// Trading fee = 10 ETH * 0.1% = 0.01 ETH
+// Or you place an order to sell 10 ETH for 3,452.55 USDT each:
+// Trading fee = (10 ETH * 3,452.55 USDT) * 0.1% = 34.5255 USDT
+
+
+function feeCals(price, invest) {
+   total_coins = invest/price
+   totalFee = percentage(total_coins, 0.10)
+  return totalFee
+}
+
+console.log(feeCals(0.06904000, 12))
+function percentage(num, per)
+{
+  return (num/100)*per;
+}
+// % = 34.5255 U
+// console.log((250 - percentage(0.10, 250)))
+
+// sell
+// console.log(percentage((10*1876), 0.10))
+
+
+
+
+// var child_process = require('child_process');
+// // console.log("Node Version: ", process.version);
+
+// run_script("node", ["ccxt.js"], function(output, exit_code) {
+//     console.log("Process Finished.");
+//     console.log('closing code: ' + exit_code);
+//     // console.log('Full output of script: ',output);
+// });
+
+// console.log ("Continuing to do node things while the process runs at the same time...");
+
+// // This function will output the lines from the script 
+// // AS is runs, AND will return the full combined output
+// // as well as exit code when it's done (using the callback).
+// function run_script(command, args, callback) {
+//     console.log("Starting Process.");
+//     var child = child_process.spawn(command, args);
+
+//     // var scriptOutput = "";
+
+//     child.stdout.setEncoding('utf8');
+//     child.stdout.on('data', function(data) {
+//         console.log(data);
+
+//         data=data.toString();
+//         // scriptOutput+=data;
+//     });
+
+//     child.stderr.setEncoding('utf8');
+//     child.stderr.on('data', function(data) {
+//         console.log('stderr: ' + data);
+
+//         data=data.toString();
+//         // scriptOutput+=data;
+//     });
+
+//     child.on('close', function(code) {
+//         // callback(scriptOutput,code);
+//     });
+// }
