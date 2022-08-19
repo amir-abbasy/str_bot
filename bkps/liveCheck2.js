@@ -7,15 +7,15 @@ const ccxt = require('ccxt')
 
 var { BinanceClient } = ccxws
 const binance = new BinanceClient()
-const ex = new ccxt.binance()
-;(async ()=> await ex.loadMarkets())() 
+// const ex = new ccxt.binance()
+// ;(async ()=> await ex.loadMarkets())() 
 
-const log = require('./log')
-const { ohlcvs_gen, percDiff, twirlTimer, feeCalc,  getTime, getProfit, setCoinsOnTrade, removeCoinsOnTrade, timeDiff, tradeLog} = require('./fun_')
-const config = require('./config')
-const coinsOnTrade = require('./coinsOnTrade.json')
+const log = require('../log')
+const { ohlcvs_gen, percDiff, twirlTimer, feeCalc,  getTime, getProfit, setCoinsOnTrade, removeCoinsOnTrade, timeDiff, tradeLog} = require('../fun_')
+const config = require('../config')
+const coinsOnTrade = require('../coinsOnTrade.json')
 
-const coinsForTrade = require('./markets.json')
+const coinsForTrade = require('../markets.json')
 
 
 // var coinsForTrade =  [
@@ -44,8 +44,7 @@ async function run() {
       kcp = ohlcv[idx - 1][4]
 
       pricePercDiff = percDiff(kc, kcp)
-      // isBull = kc >= kcp && pricePercDiff > 0.2
-      isBull = kc >= kcp 
+      isBull = kc >= kcp && pricePercDiff > 0.2
 
       if (isBull) {
         totalPricePercDiffSell += parseFloat(pricePercDiff)
@@ -84,21 +83,26 @@ async function run() {
 
       buy_and_watch(0, chances.sort((a, b)=> a.diff < b.diff))
     }
+
   })
+
   // setTimeout(run, 15000)
+  
 }
 
 
 async function buy_and_watch(coinIndex, chances_) {
-  // log(chances_.length  > coinIndex, chances_.length , coinIndex, "-", chances_[coinIndex]['coin'])
-  if(chances_.length-1 > coinIndex && !coinsOnTrade.includes(chances_[coinIndex]['coin'])){
-  pair = chances_[coinIndex]['coin'] + 'USDT'
-  result = await ex.market(pair)
-// result = await ex.market(chances_[coinIndex]['coin'] + 'USDT')
+  // log(chances_.length-1 > coinIndex, chances_.length-1 , coinIndex, "-" chances_[coinIndex]['coin'])
+  if(chances_.length > coinIndex && !coinsOnTrade.includes(chances_[coinIndex]['coin'])){
+    const ex = new ccxt.binance()
+    await ex.loadMarkets()
+    pair = chances_[coinIndex]['coin']+ 'USDT'
+    result = await ex.market(pair)
+  // result = await ex.market(chances_[coinIndex]['coin'] + 'USDT')
   if (result.info.status != 'TRADING') {
     console.log(pair, ' exchange rejected')
     buy_and_watch(coinIndex+1, chances_)
-  }else{
+  } else {
    
     buy_price = 0
     price_pcnt_diff = 0
@@ -128,13 +132,13 @@ async function buy_and_watch(coinIndex, chances_) {
       price_pcnt_diff = percDiff(parseFloat(ticker['last']), parseFloat(buy_price))
       priceDiff = getProfit(parseFloat(buy_price), parseFloat(ticker['last']))
       inrDiff = getProfit(parseFloat(buy_price), parseFloat(ticker['last']))*config.inr
-      log(price_pcnt_diff<0? '~rd': price_pcnt_diff>1?'~grn':'', !isEntered ? ticker['base']+" LOOKING POSITION..." : ticker['base'] , date[1] , "("+timeDiff(getTime(start_time)[2], date[2])+")",  !isEntered ? "low":"$buy" , buy_price, "$live:", ticker['last'], '~mgnta', price_pcnt_diff.toFixed(1)+'%', '~yl', priceDiff.toFixed(3) , 'Rs',inrDiff.toFixed(0))
+      !isEntered? log("LOOKING POSITION..."):log(price_pcnt_diff<0? '~rd': price_pcnt_diff>1?'~grn':'',ticker['base'] , date[1] , "("+timeDiff(getTime(start_time)[2], date[2])+")", "$buy" , buy_price, "$live:", ticker['last'], '~mgnta', price_pcnt_diff.toFixed(1)+'%', '~yl', priceDiff.toFixed(3) , 'Rs',inrDiff.toFixed(0))
     
       // follow low price
       if(!isEntered && ticker['last']<buy_price)buy_price = ticker['last']
 
       // ENTER
-      if(price_pcnt_diff > 0.1){
+      if(price_pcnt_diff > 0.2){
         console.log("PLACED ORDER");
         isEntered  = true
         buy_price = ticker['last']
@@ -192,7 +196,7 @@ async function buy_and_watch(coinIndex, chances_) {
 
     binance.subscribeTicker(market)
   }
-  }else{
+}else{
   log("sleeeeeeeeeeeeeeeeeeping... 30s")
   !isEntered && setTimeout(run, 30000)
 } 

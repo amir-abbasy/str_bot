@@ -1,8 +1,9 @@
-const { getBySelSupport } = require('./fun_')
+const { getBySelSupport, getTime, timeDiff, getProfit, loadMarkets} = require('./fun_')
 const log = require('./log')
+
 const ccxt = require('ccxt')
+const ccxws = require('ccxws')
 const fs = require('fs')
-var exec = require('child_process').exec;
 
 // const ex = new ccxt.binance({
 //   api_key : 'Zm736zqFfeUpi2n2wRCIt0TIzIpl9rUm3gYZDndj382iSz4V9tbh5LBU1udtDdMo',
@@ -169,88 +170,82 @@ async function test(){
 function live() {
   
 }
+
+
 live()
 
+// $0.2 (-1.65%)
 
-
-function curl_run(args_) {
-  exec(args_, function (error, stdout, stderr) {
-      console.log('stdout: ' + stdout);
-      // console.log('stderr: ' + stderr);
-      if (error !== null) {
-          console.log('exec error: ' + error);
-      }
-  })
-  
-
-}
-// curl_run("gnome-terminal")
-
-
-// For example:
-// You place an order to buy 10 ETH for 3,452.55 USDT each:
-// Trading fee = 10 ETH * 0.1% = 0.01 ETH
-// Or you place an order to sell 10 ETH for 3,452.55 USDT each:
-// Trading fee = (10 ETH * 3,452.55 USDT) * 0.1% = 34.5255 USDT
-
-
-function feeCals(price, invest) {
-   total_coins = invest/price
-   totalFee = percentage(total_coins, 0.10)
-  return totalFee
+function feeCalc(price, invest, fee=0.10) {
+  total_coins = invest/price
+  // console.log("total_coins",total_coins);
+  totalFee = percentage(total_coins * price, fee)
+  // console.log("totalFee",totalFee);
+ return totalFee
 }
 
-console.log(feeCals(0.06904000, 12))
+// 22.19259100 ADA
+// fee = feeCalc(0.2, 12)
+// console.log(fee, "--- Rs",((fee)*79.40).toFixed(3))
+
 function percentage(num, per)
 {
-  return (num/100)*per;
+ return (num/100)*per;
 }
-// % = 34.5255 U
-// console.log((250 - percentage(0.10, 250)))
-
-// sell
-// console.log(percentage((10*1876), 0.10))
 
 
 
+function tradeLog(log_file, logs){
+  var tradeLogs_json = []
+  try {
+    if (fs.existsSync('./logs/'+log_file)) {
+       tradeLogs_json = require('./logs/'+log_file)
+    }
+  } catch(err) {
+    console.error(err)
+  }
+  tradeLogs = [...tradeLogs_json, logs]
+  // tradeLogs.push(logs)
+  fs.writeFile('logs/'+log_file, JSON.stringify(tradeLogs), 'utf8', (err) => {
+    if (err) throw err
+    // console.log('logs write to json file')
+  })
+}
 
-// var child_process = require('child_process');
-// // console.log("Node Version: ", process.version);
 
-// run_script("node", ["ccxt.js"], function(output, exit_code) {
-//     console.log("Process Finished.");
-//     console.log('closing code: ' + exit_code);
-//     // console.log('Full output of script: ',output);
-// });
+date = getTime(1660682100000)
 
-// console.log ("Continuing to do node things while the process runs at the same time...");
+// console.log(getTime(1660682100000)[2]);
+// console.log(getTime(1660748700000));
 
-// // This function will output the lines from the script 
-// // AS is runs, AND will return the full combined output
-// // as well as exit code when it's done (using the callback).
-// function run_script(command, args, callback) {
-//     console.log("Starting Process.");
-//     var child = child_process.spawn(command, args);
+var sellTime_ = getTime(1660748700000)
+// console.log(parseInt(date[1].split(":")[0]));
 
-//     // var scriptOutput = "";
+logs = {
+  coin:"DOGE",
+  buy_price: 1.53500000,
+  sell_price: 1.55000000,
+  profit: 0.0232345,  
+  inr_profit: 11,  
+  profit: "1.0%" ,
+  start_time: date[1],
+  exit_time: sellTime_[1],
+  holding_time: timeDiff(date[2], sellTime_[2]),
+}
 
-//     child.stdout.setEncoding('utf8');
-//     child.stdout.on('data', function(data) {
-//         console.log(data);
+log_file= date[0].split('/').join('_')+'.json'
+// console.log(log_file);
+// tradeLog(log_file, logs)
 
-//         data=data.toString();
-//         // scriptOutput+=data;
-//     });
 
-//     child.stderr.setEncoding('utf8');
-//     child.stderr.on('data', function(data) {
-//         console.log('stderr: ' + data);
 
-//         data=data.toString();
-//         // scriptOutput+=data;
-//     });
+// console.log(-0.18 > -0.180);
+// console.log(getProfit(8.21000000,8.10800000));
+// console.log(getProfit(100,105, 100));
+// console.log(getProfit(167.30000000,167.10000000));
+// console.log(getProfit(167.30000000,167.10000000)*79.67);
 
-//     child.on('close', function(code) {
-//         // callback(scriptOutput,code);
-//     });
-// }
+
+// loadMarkets()
+
+

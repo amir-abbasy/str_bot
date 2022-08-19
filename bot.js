@@ -260,9 +260,9 @@ const bot = () => {
 // bot()
 var totalLoss = []
 var totalProfit = []
-var coinsForTrade =  [ ]  
+var coinsForTrade =  []  
 
-var markets = 1 ? markets_json: coinsForTrade
+var markets = 1 ? markets_json : coinsForTrade
 
 try {
   markets.forEach(async (element, key) => {

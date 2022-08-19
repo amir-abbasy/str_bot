@@ -100,8 +100,11 @@ function Line(length) {
 
 function getProfit(buy_price = 5.659, sell_price = 5.719, invest = 12) {
   var takerMakerFee = feeCalc(sell_price, invest)
-  var amount = invest/buy_price
-  return (amount*sell_price - amount*buy_price)-takerMakerFee
+  amount = invest/buy_price
+  // console.log("amount", amount);
+  // console.log("fee", takerMakerFee);
+  prof = amount*(sell_price - buy_price)
+  return prof-(takerMakerFee*2)
 }
 
 function getTime(time) {
@@ -115,7 +118,7 @@ function timeDiff(timeOne, timeTwo) {
   var diffHrs = Math.floor((diffMs % 86400000) / 3600000) // hours
   var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000) // minutes
   // console.log(diffDays + " days, " + diffHrs + " hours, " + diffMins + " minutes :)");
-  var f_time = diffHrs + ' hours, ' + diffMins + ' minutes :)'
+  var f_time = diffHrs + 'h:' + diffMins + 'm'
   return diffDays ? diffDays + ' days, ' + f_time : f_time
 }
 
@@ -144,16 +147,44 @@ function removeCoinsOnTrade(coin) {
 }
 
 
-function feeCalc(price, invest) {
+// $0.2 (-1.65%)
+
+function feeCalc(price, invest, fee=0.10) {
   total_coins = invest/price
-  totalFee = percentage(total_coins, 0.10)
+  // console.log("total_coins",total_coins);
+  totalFee = percentage(total_coins * price, fee)
+  // console.log("totalFee",totalFee);
  return totalFee
 }
-// console.log(feeCalc(1, 100))
+
+// 22.19259100 ADA
+// fee = feeCalc(0.2, 12)
+// console.log(fee, "--- Rs",((fee)*79.40).toFixed(3))
 
 function percentage(num, per)
 {
  return (num/100)*per;
+}
+
+
+
+function tradeLog(log_file, logs){
+  if(!log_file && !logs)return
+  
+  var tradeLogs_json = []
+  try {
+    if (fs.existsSync('./logs/'+log_file)) {
+       tradeLogs_json = require('./logs/'+log_file)
+    }
+  } catch(err) {
+    console.error(err)
+  }
+  tradeLogs = [...tradeLogs_json, logs]
+  // tradeLogs.push(logs)
+  fs.writeFile('logs/'+log_file, JSON.stringify(tradeLogs), 'utf8', (err) => {
+    if (err) throw err
+    // console.log('logs write to json file')
+  })
 }
 
 
@@ -171,5 +202,6 @@ module.exports = {
   twirlTimer,
   setCoinsOnTrade,
   removeCoinsOnTrade,
-  feeCalc
+  feeCalc,
+  tradeLog
 }
